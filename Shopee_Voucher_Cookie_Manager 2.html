@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopee Voucher & Cookie Manager</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .shopee-orange { background-color: #ee4d2d; }
+        .shopee-orange-hover:hover { background-color: #d73211; }
+        .shopee-text { color: #ee4d2d; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-full flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="shopee-orange text-white p-2 rounded-xl shadow-md flex items-center justify-center w-10 h-10">
+                    <i class="fa-solid fa-ticket text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900 leading-tight">Tuấn An Đặt Đơn</h1>
+                    <p class="text-xs text-gray-500">Hệ thống quản lý cookie & săn voucher tự động</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+
+                    <p class="text-xs text-gray-500">Hệ thống quản lý cookie & săn voucher tự động</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span class="w-2 h-2 mr-1.5 bg-green-500 rounded-full animate-pulse"></span> Hệ thống sẵn sàng
+                </span>
+                <!-- Admin Badge -->
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                    <i class="fa-solid fa-user-shield mr-1"></i> Admin Manager
+                </span>
+                <!-- User ID & Logout Badge -->
+                <div id="userInfo" class="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
+                    <i class="fa-solid fa-user-check text-xs text-green-600"></i>
+                    <span id="userIdDisplay" class="text-xs font-mono font-semibold text-gray-700 truncate max-w-[150px]">Khách ghé thăm</span>
+                    <button id="logoutBtn" onclick="handleLogout()" class="hidden text-xs text-red-500 hover:text-red-700 ml-1 font-bold">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Authentication Card (NEW LOGIN / REGISTER SYSTEM) -->
+    <div id="authSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div class="bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="space-y-1 text-center md:text-left">
+                <h2 class="text-xl font-bold flex items-center justify-center md:justify-start">
+                    <i class="fa-solid fa-lock mr-2"></i> Đăng Nhập / Đăng Ký Tài Khoản
+                </h2>
+                <p class="text-xs text-orange-100">Đăng nhập tài khoản cá nhân để đồng bộ dữ liệu và lưu lịch sử săn voucher.</p>
+            </div>
+            
+            <div id="authFormBox" class="bg-white text-gray-800 p-4 rounded-xl shadow-md w-full md:w-auto min-w-[320px]">
+                <div class="flex border-b border-gray-200 mb-3 text-xs font-semibold">
+                    <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-center text-[#ee4d2d] border-b-2 border-[#ee4d2d]">Đăng Nhập</button>
+                    <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 pb-2 text-center text-gray-400 hover:text-gray-600">Đăng Ký</button>
+                </div>
+                
+                <div class="space-y-2.5">
+                    <div>
+                        <input type="text" id="authUsername" placeholder="Tên tài khoản / Email" 
+                            class="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ee4d2d]">
+                    </div>
+                    <div>
+                        <input type="password" id="authPassword" placeholder="Mật khẩu" 
+                            class="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ee4d2d]">
+                    </div>
+                    <button id="authSubmitBtn" onclick="handleAuthSubmit()" 
+                        class="w-full shopee-orange shopee-orange-hover text-white font-semibold py-2 rounded-lg text-xs shadow transition">
+                        Đăng Nhập
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Panel: Input & Controls (1 Column) -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- Admin User Management Card (NEW) -->
+            <div class="bg-amber-50/60 rounded-2xl shadow-sm border border-amber-200 p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base font-semibold text-amber-900 flex items-center">
+                        <i class="fa-solid fa-users-gear text-amber-600 mr-2"></i> Quyền Khách Hàng (Admin)
+                    </h2>
+                    <span id="activeUserCount" class="text-xs font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">0 Khách</span>
+                </div>
+                <p class="text-xs text-amber-700">Xem danh sách khách hàng & Bật/Tắt quyền cho phép sử dụng web.</p>
+                
+                <div id="adminUserList" class="divide-y divide-amber-200/60 max-h-48 overflow-y-auto pr-1 space-y-2">
+                    <p class="text-xs text-amber-600/80 text-center py-4">Đang tải danh sách khách hàng...</p>
+                </div>
+            </div>
+
+            <!-- Add Voucher Form Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 space-y-4">
+                <h2 class="text-base font-semibold text-gray-900 flex items-center">
+                    <i class="fa-solid fa-sliders shopee-text mr-2"></i> Thiết lập Săn Voucher
+                </h2>
+
+                <!-- Voucher ID / Campaign Link -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mã Voucher / ID Chiến dịch</label>
+                    <input type="text" id="voucherId" placeholder="VD: 12938192 hoặc Link Shopee" 
+                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-transparent transition">
+                </div>
+
+                <!-- Cookie Input -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Danh sách Cookie Tài khoản</label>
+                    <textarea id="cookieInput" rows="5" placeholder="Dán cookie (mỗi dòng 1 cookie hoặc định dạng JSON)..."
+                        class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-transparent transition resize-none"></textarea>
+                    <p class="text-xs text-gray-400 mt-1">Hỗ trợ định dạng cookie chuỗi hoặc SPID/SPC_EC...</p>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="startProcessing()" id="startBtn"
+                    class="w-full shopee-orange shopee-orange-hover text-white font-medium py-2.5 px-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Bắt đầu Thêm Voucher</span>
+                </button>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 grid grid-cols-3 gap-3">
+                <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                    <p class="text-xs text-orange-600 font-medium">Tổng tài khoản</p>
+                    <p id="statTotal" class="text-xl font-bold text-orange-900 mt-1">0</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-xl border border-green-100">
+                    <p class="text-xs text-green-600 font-medium">Thành công</p>
+                    <p id="statSuccess" class="text-xl font-bold text-green-900 mt-1">0</p>
+                </div>
+                <div class="bg-red-50 p-3 rounded-xl border border-red-100">
+                    <p class="text-xs text-red-600 font-medium">Thất bại</p>
+                    <p id="statFailed" class="text-xl font-bold text-red-900 mt-1">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Logs & Account Table & History (2 Columns) -->
+        <div class="lg:col-span-2 space-y-6 flex flex-col">
+            
+            <!-- Active Queue Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 flex-grow flex flex-col overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h2 class="text-base font-semibold text-gray-900 flex items-center">
+                        <i class="fa-solid fa-list-check shopee-text mr-2"></i> Trạng thái Tài khoản
+                    </h2>
+                    <button onclick="clearTable()" class="text-xs text-gray-500 hover:text-red-600 transition flex items-center space-x-1">
+                        <i class="fa-solid fa-trash-can"></i> <span>Xóa danh sách</span>
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto flex-grow max-h-[260px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 sticky top-0 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">STT</th>
+                                <th class="py-3 px-4">Tài khoản (Cookie snippet)</th>
+                                <th class="py-3 px-4">Voucher ID</th>
+                                <th class="py-3 px-4">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountTableBody" class="divide-y divide-gray-100 text-sm">
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-gray-400">
+                                    Chưa có tài khoản nào được thêm. Vui lòng nhập cookie bên trái.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 space-y-3">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <h2 class="text-base font-semibold text-gray-900 flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left shopee-text mr-2"></i> Lịch sử chạy gần đây
+                    </h2>
+                    <span class="text-xs text-gray-400">Tự động đồng bộ</span>
+                </div>
+                <div class="overflow-y-auto max-h-36">
+                    <ul id="historyList" class="divide-y divide-gray-100 text-xs space-y-2">
+                        <li class="text-gray-400 text-center py-4">Đang tải lịch sử...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Terminal / Console Log -->
+            <div class="bg-gray-900 rounded-2xl shadow-sm border border-gray-800 p-4 flex flex-col h-40">
+                <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-800">
+                    <span class="text-xs font-mono text-gray-400 flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
+                        <span class="ml-2">Console Log</span>
+                    </span>
+                    <button onclick="clearLogs()" class="text-xs text-gray-400 hover:text-white transition">Xóa log</button>
+                </div>
+                <div id="consoleLog" class="font-mono text-xs text-green-400 overflow-y-auto space-y-1 flex-grow">
+                    <p class="text-gray-500">[System] Khởi tạo hệ thống...</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Custom Modal for Notifications -->
+    <div id="customModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-xl">
+            <div id="modalIcon" class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 id="modalTitle" class="text-lg font-bold text-gray-900">Thông báo</h3>
+            <p id="modalMessage" class="text-sm text-gray-600">Nội dung thông báo ở đây.</p>
+            <button onclick="closeModal()" class="w-full bg-gray-900 text-white font-medium py-2.5 rounded-xl hover:bg-gray-800 transition">
+                Đóng
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK & Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Config Setup
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'shopee-voucher-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-api-key",
+            authDomain: "demo-app.firebaseapp.com",
+            projectId: "demo-app",
+            storageBucket: "demo-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:demo"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let isUserAllowed = true;
+        let authMode = 'login'; // 'login' or 'register'
+
+        // Auth Tab Switching
+        window.switchAuthTab = function(mode) {
+            authMode = mode;
+            const loginBtn = document.getElementById('tabLoginBtn');
+            const regBtn = document.getElementById('tabRegisterBtn');
+            const submitBtn = document.getElementById('authSubmitBtn');
+
+            if (mode === 'login') {
+                loginBtn.className = "flex-1 pb-2 text-center text-[#ee4d2d] border-b-2 border-[#ee4d2d] font-semibold";
+                regBtn.className = "flex-1 pb-2 text-center text-gray-400 hover:text-gray-600";
+                submitBtn.innerText = "Đăng Nhập";
+            } else {
+                regBtn.className = "flex-1 pb-2 text-center text-[#ee4d2d] border-b-2 border-[#ee4d2d] font-semibold";
+                loginBtn.className = "flex-1 pb-2 text-center text-gray-400 hover:text-gray-600";
+                submitBtn.innerText = "Tạo Tài Khoản Mới";
+            }
+        };
+
+        // Handle Custom Username/Password Login & Register via Firestore Accounts Store
+        window.handleAuthSubmit = async function() {
+            const usernameInput = document.getElementById('authUsername').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('authPassword').value.trim();
+
+            if (!usernameInput || !passwordInput) {
+                showModal("Thiếu thông tin", "Vui lòng nhập đầy đủ Tài khoản và Mật khẩu!");
+                return;
+            }
+
+            try {
+                const accountDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_accounts', usernameInput);
+                
+                if (authMode === 'register') {
+                    // Check if exists
+                    const accountSnap = await getDoc(accountDocRef);
+                    if (accountSnap.exists()) {
+                        showModal("Lỗi đăng ký", "Tên tài khoản này đã tồn tại! Vui lòng chọn tên khác.");
+                        return;
+                    }
+                    
+                    // Register Account
+                    await setDoc(accountDocRef, {
+                        username: usernameInput,
+                        password: passwordInput, // Giữ dạng đơn giản cho ứng dụng
+                        createdAt: new Date().toISOString(),
+                        allowed: true
+                    });
+
+                    // Save session local
+                    localStorage.setItem('tuanan_user', usernameInput);
+                    showModal("Thành công", "Đăng ký tài khoản thành công! Đã đăng nhập tự động.", true);
+                    updateUserUI(usernameInput);
+                } else {
+                    // Login Process
+                    const accountSnap = await getDoc(accountDocRef);
+                    if (!accountSnap.exists()) {
+                        showModal("Đăng nhập thất bại", "Tài khoản không tồn tại trên hệ thống!");
+                        return;
+                    }
+
+                    const accData = accountSnap.data();
+                    if (accData.password !== passwordInput) {
+                        showModal("Đăng nhập thất bại", "Mật khẩu không chính xác!");
+                        return;
+                    }
+
+                    localStorage.setItem('tuanan_user', usernameInput);
+                    showModal("Thành công", `Chào mừng trở lại, ${usernameInput}!`, true);
+                    updateUserUI(usernameInput);
+                }
+            } catch (err) {
+                console.error("Auth submit error:", err);
+                showModal("Lỗi kết nối", "Có lỗi xảy ra khi thực hiện đăng nhập/đăng ký.");
+            }
+        };
+
+        window.handleLogout = function() {
+            localStorage.removeItem('tuanan_user');
+            location.reload();
+        };
+
+        function updateUserUI(username) {
+            document.getElementById('userIdDisplay').innerText = username;
+            document.getElementById('logoutBtn').classList.remove('hidden');
+            document.getElementById('authSection').classList.add('hidden');
+            logMessage(`Đã đăng nhập tài khoản: ${username}`, "info");
+
+            // Register status & Load
+            registerUserStatus(username);
+            loadHistory();
+            listenAdminUserControl();
+        }
+
+        // Initialize Authentication
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth error:", err);
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const savedUser = localStorage.getItem('tuanan_user');
+                if (savedUser) {
+                    updateUserUI(savedUser);
+                } else {
+                    // Register temporary anonymous user status
+                    registerUserStatus(user.uid.substring(0, 8));
+                    listenAdminUserControl();
+                }
+            }
+        });
+
+        initAuth();
+
+        // Register user to public registry
+        async function registerUserStatus(username) {
+            try {
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', username);
+                await setDoc(userDocRef, {
+                    uid: username,
+                    lastSeen: new Date().toISOString(),
+                    allowed: true
+                }, { merge: true });
+            } catch (err) {
+                console.error("Error registering user status:", err);
+            }
+        }
+
+        // Listen & Manage all clients for Admin Control Panel
+        function listenAdminUserControl() {
+            const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+            onSnapshot(usersRef, (snapshot) => {
+                const userListContainer = document.getElementById('adminUserList');
+                const activeUserCount = document.getElementById('activeUserCount');
+                
+                if (snapshot.empty) {
+                    userListContainer.innerHTML = `<p class="text-xs text-amber-600/80 text-center py-4">Chưa có khách hàng nào truy cập.</p>`;
+                    activeUserCount.innerText = "0 Khách";
+                    return;
+                }
+
+                let users = [];
+                const activeName = localStorage.getItem('tuanan_user') || (currentUser ? currentUser.uid.substring(0, 8) : '');
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    users.push(data);
+
+                    if (activeName && data.uid === activeName) {
+                        isUserAllowed = data.allowed !== false;
+                        window.isUserAllowed = isUserAllowed;
+                    }
+                });
+
+                activeUserCount.innerText = `${users.length} Khách`;
+
+                userListContainer.innerHTML = users.map((u) => {
+                    const isSelf = activeName && u.uid === activeName;
+                    const isAllowed = u.allowed !== false;
+                    return `
+                        <div class="flex items-center justify-between py-2 border-b border-amber-200/50 last:border-0 text-xs">
+                            <div class="truncate max-w-[160px]">
+                                <span class="font-mono font-medium text-amber-950">${u.uid}</span>
+                                ${isSelf ? '<span class="ml-1 text-[10px] text-amber-700 bg-amber-200 px-1.5 py-0.2 rounded font-semibold">(Bạn)</span>' : ''}
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-[10px] font-semibold ${isAllowed ? 'text-green-700' : 'text-red-600'}">
+                                    ${isAllowed ? 'Cho phép' : 'Đã khóa'}
+                                </span>
+                                <button onclick="toggleUserPermission('${u.uid}', ${!isAllowed})" 
+                                    class="px-2 py-1 rounded text-[11px] font-medium transition ${isAllowed ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}">
+                                    ${isAllowed ? 'Tắt' : 'Bật'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }, (err) => {
+                console.error("Admin user list error:", err);
+            });
+        }
+
+        // Toggle user permission (Admin function)
+        async function toggleUserPermission(uid, newAllowedState) {
+            try {
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', uid);
+                await updateDoc(userDocRef, {
+                    allowed: newAllowedState
+                });
+                logMessage(`Đã ${newAllowedState ? 'MỞ QUYỀN' : 'TẮT QUYỀN'} sử dụng cho khách [${uid}]`, newAllowedState ? "info" : "warn");
+            } catch (error) {
+                console.error("Toggle permission error:", error);
+            }
+        }
+
+        // Save history to Firestore
+        async function saveToHistory(voucherId, total, success) {
+            if (!currentUser) return;
+            const accountUser = localStorage.getItem('tuanan_user') || currentUser.uid;
+            try {
+                const historyRef = collection(db, 'artifacts', appId, 'users', accountUser, 'history');
+                await addDoc(historyRef, {
+                    voucherId: voucherId,
+                    totalCount: total,
+                    successCount: success,
+                    timestamp: new Date().toISOString()
+                });
+                logMessage("Đã lưu lịch sử chạy vào hệ thống.", "info");
+            } catch (error) {
+                console.error("Save history error:", error);
+            }
+        }
+
+        // Listen for history updates in real-time
+        function loadHistory() {
+            if (!currentUser) return;
+            const accountUser = localStorage.getItem('tuanan_user') || currentUser.uid;
+            const historyRef = collection(db, 'artifacts', appId, 'users', accountUser, 'history');
+            onSnapshot(historyRef, (snapshot) => {
+                const historyList = document.getElementById('historyList');
+                if (snapshot.empty) {
+                    historyList.innerHTML = `<li class="text-gray-400 text-center py-4">Chưa có lịch sử chạy nào được lưu.</li>`;
+                    return;
+                }
+                const docs = [];
+                snapshot.forEach(doc => docs.push(doc.data()));
+                
+                docs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                historyList.innerHTML = docs.slice(0, 5).map(item => {
+                    const dateStr = new Date(item.timestamp).toLocaleString();
+                    return `
+                        <li class="py-2 flex items-center justify-between border-b border-gray-50 last:border-0">
+                            <div>
+                                <span class="font-medium text-gray-800">Voucher: ${item.voucherId}</span>
+                                <p class="text-[10px] text-gray-400">${dateStr}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-semibold ${item.successCount > 0 ? 'text-green-600' : 'text-red-500'}">
+                                    Thành công: ${item.successCount}/${item.totalCount}
+                                </span>
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+            }, (error) => {
+                console.error("Fetch history error:", error);
+            });
+        }
+
+        // Expose functions to window scope
+        window.saveToHistory = saveToHistory;
+        window.toggleUserPermission = toggleUserPermission;
+    </script>
+
+    <!-- JavaScript Logic -->
+    <script>
+        function showModal(title, message, isSuccess = false) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            const iconDiv = document.getElementById('modalIcon');
+            if(isSuccess) {
+                iconDiv.className = "w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto text-xl";
+                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else {
+                iconDiv.className = "w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl";
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+            document.getElementById('customModal').classList.remove('hidden');
+            document.getElementById('customModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.remove('flex');
+            document.getElementById('customModal').classList.add('hidden');
+        }
+
+        function logMessage(msg, type = 'info') {
+            const consoleBox = document.getElementById('consoleLog');
+            if (!consoleBox) return;
+            const p = document.createElement('p');
+            const timeStr = new Date().toLocaleTimeString();
+            let colorClass = 'text-green-400';
+            if (type === 'error') colorClass = 'text-red-400';
+            if (type === 'warn') colorClass = 'text-yellow-400';
+            
+            p.className = colorClass;
+            p.innerHTML = `<span class="text-gray-500">[${timeStr}]</span> ${msg}`;
+            consoleBox.appendChild(p);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('consoleLog').innerHTML = '';
+        }
+
+        function clearTable() {
+            document.getElementById('accountTableBody').innerHTML = `
+                <tr>
+                    <td colspan="4" class="py-8 text-center text-gray-400">
+                        Chưa có tài khoản nào được thêm. Vui lòng nhập cookie bên trái.
+                    </td>
+                </tr>
+            `;
+            document.getElementById('statTotal').innerText = '0';
+            document.getElementById('statSuccess').innerText = '0';
+            document.getElementById('statFailed').innerText = '0';
+            logMessage("Đã xóa danh sách tài khoản.", "warn");
+        }
+
+        async function startProcessing() {
+            if (window.isUserAllowed === false) {
+                showModal("Truy cập bị từ chối", "Tài khoản của bạn đã bị Quản lý tắt quyền sử dụng web!");
+                logMessage("Lỗi: Tài khoản bị khóa quyền sử dụng bởi Quản lý.", "error");
+                return;
+            }
+
+            const voucherId = document.getElementById('voucherId').value.trim();
+            const cookieRaw = document.getElementById('cookieInput').value.trim();
+
+            if (!voucherId) {
+                showModal("Thiếu thông tin", "Vui lòng nhập Mã Voucher hoặc ID Chiến dịch!");
+                return;
+            }
+            if (!cookieRaw) {
+                showModal("Thiếu thông tin", "Vui lòng nhập ít nhất một dòng Cookie!");
+                return;
+            }
+
+            const cookies = cookieRaw.split('\n').map(c => c.trim()).filter(c => c.length > 0);
+            
+            document.getElementById('statTotal').innerText = cookies.length;
+            document.getElementById('statSuccess').innerText = '0';
+            document.getElementById('statFailed').innerText = '0';
+
+            const tbody = document.getElementById('accountTableBody');
+            tbody.innerHTML = '';
+
+            cookies.forEach((cookie, index) => {
+                const shortCookie = cookie.length > 30 ? cookie.substring(0, 30) + '...' : cookie;
+                const tr = document.createElement('tr');
+                tr.id = `row-${index}`;
+                tr.className = "hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-gray-700">#${index + 1}</td>
+                    <td class="py-3 px-4 font-mono text-xs text-gray-600">${shortCookie}</td>
+                    <td class="py-3 px-4 font-medium text-gray-800">${voucherId}</td>
+                    <td class="py-3 px-4">
+                        <span id="status-${index}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Đang xử lý...
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            logMessage(`Bắt đầu tiến trình thêm voucher [${voucherId}] cho ${cookies.length} tài khoản...`, "info");
+
+            let successCount = 0;
+            let failedCount = 0;
+            
+            // Các lý do thất bại giả lập khi lưu voucher
+            const failureReasons = [
+                "Cookie hết hạn / Chưa đăng nhập",
+                "Voucher đã hết lượt sử dụng",
+                "Mã voucher không tồn tại",
+                "Tài khoản đã lưu voucher này trước đó",
+                "Lỗi kết nối máy chủ Shopee"
+            ];
+
+            for (let i = 0; i < cookies.length; i++) {
+                await new Promise(r => setTimeout(r, 1000));
+                const statusSpan = document.getElementById(`status-${i}`);
+                
+                const isSuccess = Math.random() > 0.4; // Tỷ lệ thành công mô phỏng 60%
+                if (isSuccess) {
+                    statusSpan.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800";
+                    statusSpan.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Thành công';
+                    successCount++;
+                    logMessage(`[Tài khoản #${i+1}] Thêm voucher thành công!`, "info");
+                } else {
+                    failedCount++;
+                    const reason = failureReasons[Math.floor(Math.random() * failureReasons.length)];
+                    statusSpan.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800";
+                    statusSpan.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> Thất bại (${reason})`;
+                    logMessage(`[Tài khoản #${i+1}] Thêm voucher thất bại: ${reason}`, "error");
+                }
+                document.getElementById('statSuccess').innerText = successCount;
+                document.getElementById('statFailed').innerText = failedCount;
+            }
+
+            logMessage(`Hoàn thành! Thành công: ${successCount}, Thất bại: ${failedCount}/${cookies.length}`, "info");
+            
+            // Call saveToHistory attached to window
+            if (window.saveToHistory) {
+                window.saveToHistory(voucherId, cookies.length, successCount);
+            }
+
+            showModal("Hoàn tất tiến trình", `Đã xử lý xong ${cookies.length} tài khoản.\nThành công: ${successCount} | Thất bại: ${failedCount}`, successCount > 0);
+        }
+    </script>
+</body>
+</html>
